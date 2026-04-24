@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>HORIKITA66 — БРУТАЛ СТОР</title>
+    <!-- Font Awesome 6 (иконки) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        body {
+            font-family: 'Impact', 'Arial Black', 'Inter', monospace;
+            padding: 2rem 1.2rem;
+            line-height: 1.4;
+        }
+        /* темы */
+        body.theme-dark {
+            background: #0c0c0c;
+            color: #e0e0e0;
+        }
+        body.theme-dark .bg-metal {
+            background: repeating-linear-gradient(45deg, #111 0px, #111 2px, #1a1a1a 2px, #1a1a1a 8px);
+        }
+        body.theme-steel {
+            background: #2c2e3a;
+            color: #f0f0f0;
+        }
+        body.theme-steel .bg-metal {
+            background: repeating-linear-gradient(45deg, #3a3c4a 0px, #3a3c4a 2px, #4e5162 2px, #4e5162 8px);
+        }
+        body.theme-haki {
+            background: #2d2b1f;
+            color: #f5e7c8;
+        }
+        body.theme-haki .bg-metal {
+            background: repeating-linear-gradient(45deg, #3b3826 0px, #3b3826 2px, #524d34 2px, #524d34 8px);
+        }
+        .bg-metal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(0,0,0,0.3), #000000);
+            z-index: -1;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        /* шапка */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border-bottom: 3px solid #c0a050;
+            background: rgba(0,0,0,0.5);
+        }
+        .brand {
+            font-size: 2.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #d4af37;
+            text-shadow: 2px 2px 0 #5a3e0b;
+        }
+        .tagline {
+            font-size: 0.7rem;
+            font-family: monospace;
+            color: #aaa;
+        }
+        /* панель статистики и темы */
+        .stats-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .stats, .theme-toggle {
+            background: #1f1f1f;
+            border: 1px solid #c0a050;
+            border-radius: 30px;
+            padding: 0.3rem 1rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .theme-btn {
+            background: none;
+            border: none;
+            color: #f5c542;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin: 0 3px;
+        }
+        /* корзина */
+        .cart-sidebar {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            width: 320px;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            border: 2px solid #c0a050;
+            border-radius: 20px;
+            padding: 1rem;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+            font-size: 0.75rem;
+        }
+        .cart-sidebar h3 {
+            border-bottom: 1px solid #c0a050;
+            margin-bottom: 0.5rem;
+        }
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+        }
+        .cart-total {
+            font-weight: bold;
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+        .checkout-btn {
+            background: #c0a050;
+            color: black;
+            border: none;
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 40px;
+            font-weight: bold;
+            margin-top: 0.8rem;
+            cursor: pointer;
+        }
+        /* сетка товаров */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0 3rem;
+        }
+        .product-card {
+            background: rgba(17,17,17,0.8);
+            backdrop-filter: blur(4px);
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 1rem;
+            transition: 0.2s;
+        }
+        .product-img img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+        .product-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin: 0.5rem 0 0;
+        }
+        .size-select {
+            margin: 0.7rem 0;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .size-btn {
+            background: #2a2a2a;
+            border: 1px solid #c0a050;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .size-btn.active {
+            background: #c0a050;
+            color: black;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        .price {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #f5c542;
+        }
+        .buy-btn {
+            background: black;
+            border: 2px solid #c0a050;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            color: #f5c542;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .tg-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1f1f1f;
+            border: 2px solid #c0a050;
+            border-radius: 60px;
+            padding: 0.7rem 1.2rem;
+            color: #f5c542;
+            text-decoration: none;
+            font-weight: bold;
+            backdrop-filter: blur(4px);
+            z-index: 99;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #c0a050;
+            color: black;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            font-weight: bold;
+            z-index: 200;
+            white-space: nowrap;
+        }
+        @media (max-width: 780px) {
+            .cart-sidebar { width: 260px; font-size: 0.65rem; top: auto; bottom: 5rem; right: 0.5rem; top: auto; }
+        }
+    </style>
+</head>
+<body class="theme-dark">
+<div class="bg-metal"></div>
+<div class="bg-overlay"></div>
+
+<div class="container">
+    <div class="header">
+        <div class="brand">HORIKITA66</div>
+        <div class="tagline">// BRUTAL APPAREL // ONLY REAL //</div>
+        <div class="stats-bar">
+            <div class="stats">👁️ ПОСЕЩЕНИЙ: <span id="visitCounter">0</span> &nbsp;| ⚡ ЗАКАЗОВ: <span id="orderCounter">0</span></div>
+            <div class="theme-toggle">
+                <i class="fas fa-moon theme-btn" data-theme="dark"></i>
+                <i class="fas fa-cog theme-btn" data-theme="steel"></i>
+                <i class="fas fa-tree theme-btn" data-theme="haki"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="products-grid" id="productsGrid"></div>
+
+    <div class="tg-section" style="text-align:center; margin:2rem 0; padding:1rem; background:#0a0a0a; border-top:1px solid #c0a050;">
+        <a href="https://t.me/horikita666" target="_blank" class="tg-link" style="background:#1a1a1a; border:2px solid #c0a050; padding:0.7rem 2rem; border-radius:60px; color:#f5c542; text-decoration:none;">💪 НАПИСАТЬ В TELEGRAM 💪</a>
+    </div>
+    <div class="footer" style="text-align:center; font-size:0.6rem; margin-top:2rem;">HORIKITA66 // ВСЁ ПО-ЧЕСТНОМУ <span id="currentYear"></span></div>
+</div>
+
+<!-- КОРЗИНА -->
+<div class="cart-sidebar" id="cartSidebar">
+    <h3><i class="fas fa-shopping-cart"></i> КОРЗИНА</h3>
+    <div class="cart-items" id="cartItemsList">Пусто</div>
+    <div class="cart-total" id="cartTotal">ИТОГО: 0P</div>
+    <button class="checkout-btn" id="checkoutBtn">📦 ОФОРМИТЬ ЗАКАЗ</button>
+</div>
+
+<a href="https://t.me/horikita666" target="_blank" class="tg-fab"><i class="fab fa-telegram"></i> СВЯЗЬ</a>
+
+<script>
+(function() {
+    //  ========== ЗВУКИ (локальные) ==========
+    let audioCtx = null;
+    function playBeep(type) {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            let freq = type === 'click' ? 880 : (type === 'add' ? 660 : 440);
+            osc.frequency.value = freq;
+            gain.gain.value = 0.1;
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
+            osc.stop(audioCtx.currentTime + 0.2);
+        } catch(e) { console.log('audio'); }
+    }
+    function unlockAudio() { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }
+    document.body.addEventListener('click', unlockAudio, { once: true });
+
+    // темы
+    const themes = { dark: 'theme-dark', steel: 'theme-steel', haki: 'theme-haki' };
+    function setTheme(theme) {
+        document.body.className = themes[theme];
+        localStorage.setItem('brutal_theme', theme);
+    }
+    const savedTheme = localStorage.getItem('brutal_theme') || 'dark';
+    setTheme(savedTheme);
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            let th = e.currentTarget.getAttribute('data-theme');
+            setTheme(th);
+            playBeep('click');
+        });
+    });
+
+    // счетчики
+    let visits = localStorage.getItem('brutalVisits');
+    visits = visits ? Number(visits)+1 : 1;
+    localStorage.setItem('brutalVisits', visits);
+    document.getElementById('visitCounter').innerText = visits;
+    let ordersCount = localStorage.getItem('brutalOrders') || 0;
+    document.getElementById('orderCounter').innerText = ordersCount;
+
+    // корзина
+    let cart = JSON.parse(localStorage.getItem('brutalCart')) || [];
+    function saveCart() { localStorage.setItem('brutalCart', JSON.stringify(cart)); renderCart(); }
+    function renderCart() {
+        const container = document.getElementById('cartItemsList');
+        if (!cart.length) { container.innerHTML = 'Пусто'; document.getElementById('cartTotal').innerHTML = 'ИТОГО: 0P'; return; }
+        let html = '';
+        let total = 0;
+        cart.forEach((item, idx) => {
+            total += item.price * item.qty;
+            html += `<div class="cart-item">${item.title} (${item.size}) x${item.qty} - ${item.price*item.qty}P <button class="remove-item" data-idx="${idx}" style="background:none;border:none;color:#c0a050;">🗑️</button></div>`;
+        });
+        container.innerHTML = html;
+        document.getElementById('cartTotal').innerHTML = `ИТОГО: ${total}P`;
+        document.querySelectorAll('.remove-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                let idx = parseInt(btn.getAttribute('data-idx'));
+                cart.splice(idx,1);
+                saveCart();
+                playBeep('click');
+            });
+        });
+    }
+    function addToCart(productTitle, price, size) {
+        let existing = cart.find(i => i.title === productTitle && i.size === size);
+        if(existing) existing.qty++;
+        else cart.push({ title: productTitle, price: parseInt(price.replace(/[^0-9]/g,'')), size: size, qty: 1 });
+        saveCart();
+        showToast(`➕ ${productTitle} (${size}) в корзине`);
+        playBeep('add');
+    }
+    function showToast(msg) {
+        let t = document.createElement('div');
+        t.className = 'toast';
+        t.innerText = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 1500);
+    }
+
+    // товары
+    const products = [
+        { title: "Horikita shirt", desc: "100% хлопок", price: 2500, img: "https://i.ibb.co/dhHsG8T/IMG-20260421-151728-339.jpg" },
+        { title: "Horikita Hoodie", desc: "оверсайз", price: 3199, img: "https://i.ibb.co/Qv5CvXjG/IMG-20260420-203529-254.jpg" },
+        { title: "Horikita Sweater", desc: "флис", price: 3000, img: "https://i.ibb.co/xK3FDMPj/IMG-20260420-170510-716.jpg" },
+        { title: "Horikita Pullover", desc: "шерсть", price: 5000, img: "https://i.ibb.co/r2MYmXj9/IMG-20260421-151834-343.jpg" },
+        { title: "Horikita Bomber", desc: "нейлон", price: 3300, img: "https://i.ibb.co/TD2j6czH/IMG-20260421-151625-372.jpg" },
+        { title: "Horikita Denim", desc: "деним", price: 3400, img: "https://i.ibb.co/nNPWrHZh/IMG-20260421-152115-473.jpg" }
+    ];
+    const grid = document.getElementById('productsGrid');
+    products.forEach(prod => {
+        let card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+            <div class="product-img"><img src="${prod.img}" alt="${prod.title}" loading="lazy"></div>
+            <div class="product-title">${prod.title}</div>
+            <div class="product-desc" style="font-size:0.7rem;">${prod.desc}</div>
+            <div class="size-select" data-title="${prod.title}" data-price="${prod.price}">
+                <span class="size-btn" data-size="S">S</span>
+                <span class="size-btn" data-size="M">M</span>
+                <span class="size-btn" data-size="L">L</span>
+                <span class="size-btn" data-size="XL">XL</span>
+                <span class="size-btn" data-size="XXL">XXL</span>
+            </div>
+            <div class="price-row">
+                <span class="price">${prod.price}P</span>
+                <button class="buy-btn" data-title="${prod.title}" data-price="${prod.price}">КУПИТЬ →</button>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+    // выбор размера
+    document.querySelectorAll('.size-select').forEach(sel => {
+        const btns = sel.querySelectorAll('.size-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                playBeep('click');
+            });
+        });
+    });
+    // кнопки купить
+    document.querySelectorAll('.buy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            let card = btn.closest('.product-card');
+            let title = btn.getAttribute('data-title');
+            let price = btn.getAttribute('data-price');
+            let selectedSize = card.querySelector('.size-btn.active');
+            let size = selectedSize ? selectedSize.getAttribute('data-size') : 'M';
+            addToCart(title, price+'P', size);
+        });
+    });
+
+    // оформление заказа
+    document.getElementById('checkoutBtn').addEventListener('click', () => {
+        if(cart.length === 0) { showToast('Корзина пуста'); return; }
+        let total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+        let msg = '🛒 НОВЫЙ ЗАКАЗ:\n';
+        cart.forEach(i => { msg += `- ${i.title} (${i.size}) x${i.qty} = ${i.price*i.qty}P\n`; });
+        msg += `\n💸 ИТОГО: ${total}P\n📦 Заказ от @horikita666 (сайт)`;
+        window.open(`https://t.me/horikita666?text=${encodeURIComponent(msg)}`);
+        // счетчик заказов
+        let newOrders = Number(localStorage.getItem('brutalOrders')||0) + 1;
+        localStorage.setItem('brutalOrders', newOrders);
+        document.getElementById('orderCounter').innerText = newOrders;
+        cart = [];
+        saveCart();
+        showToast('✅ Заказ отправлен в Telegram!');
+        playBeep('add');
+    });
+
+    renderCart();
+    document.getElementById('currentYear').innerText = new Date().getFullYear();
+    // анимация появления
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if(e.isIntersecting) e.target.style.opacity = '1'; });
+    }, {threshold:0.2});
+    document.querySelectorAll('.product-card').forEach(c => { c.style.opacity = '0'; c.style.transition = '0.4s'; observer.observe(c); });
+})();
+</script>
+</body>
+  </html>
