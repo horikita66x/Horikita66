@@ -3,460 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>STAR STRIKE — HORIKITA66</title>
+    <title>STAR STRIKE — INK TOUCH</title>
     <style>
         * {
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            touch-action: none;
         }
-
         body {
             margin: 0;
             min-height: 100vh;
             background: #03030f;
-            background-image: radial-gradient(circle at 20% 30%, #0a0a1a 2%, #000000 90%);
-            font-family: 'Courier New', 'Fira Code', monospace;
             display: flex;
             justify-content: center;
             align-items: center;
-            touch-action: manipulation;
             overflow: hidden;
             position: fixed;
             width: 100%;
             height: 100%;
+            font-family: 'Courier New', monospace;
         }
-
-        /* главный контейнер */
-        .game-container {
+        .game-wrapper {
             position: relative;
             width: 100%;
             max-width: 550px;
             height: 95vh;
             max-height: 800px;
-            background: rgba(0, 0, 0, 0.6);
             border-radius: 48px;
-            border: 2px solid #ffd966;
-            box-shadow: 0 0 20px rgba(255, 200, 50, 0.3);
+            border: 3px solid #ffd966;
+            box-shadow: 0 0 20px rgba(255, 200, 50, 0.5);
             overflow: hidden;
-            margin: 0 auto;
         }
-
-        /* панель статистики */
-        .stats {
+        canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            padding: 12px 16px;
+            height: 100%;
+            display: block;
+            border-radius: 46px;
+        }
+        #gameCanvas {
+            background: radial-gradient(circle at 30% 20%, #0a0a1a, #000000);
+            z-index: 1;
+        }
+        #effectCanvas {
+            z-index: 2;
+            pointer-events: none;
+        }
+        .stats {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
             display: flex;
             justify-content: space-between;
             background: #000000aa;
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid #ffd966;
-            z-index: 20;
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 60px;
+            border: 1px solid #ffd966;
+            z-index: 10;
             font-weight: bold;
-            font-size: 1.4rem;
-            letter-spacing: 2px;
-            box-sizing: border-box;
+            font-size: 1.2rem;
+            color: #ffecb3;
+            font-family: monospace;
+            pointer-events: none;
         }
-
-        .score-box, .timer-box, .best-box {
-            background: #000000aa;
-            padding: 4px 12px;
-            border-radius: 40px;
-            border: 1px solid #ffb347;
-        }
-
-        .best-box span {
-            color: #ffb347;
-        }
-
-        /* поле для падения объектов */
-        .play-area {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-
-        /* падающие штуки */
-        .fall-item {
-            position: absolute;
-            font-size: 42px;
-            width: 70px;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            filter: drop-shadow(0 0 4px currentColor);
-            transition: transform 0.02s linear;
-            pointer-events: auto;
-            z-index: 15;
-        }
-
-        .fall-item:active {
-            transform: scale(0.85);
-        }
-
-        /* конец игры */
-        .end-panel {
+        .end-screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000000cc;
-            backdrop-filter: blur(8px);
-            z-index: 100;
+            background: #000000dd;
+            backdrop-filter: blur(12px);
+            z-index: 20;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 20px;
-            text-align: center;
             border-radius: 48px;
+            text-align: center;
+            visibility: hidden;
         }
-
-        .end-panel h2 {
-            font-size: 2.8rem;
-            color: #ffd966;
-            text-shadow: 0 0 6px red;
+        .end-screen h2 {
+            font-size: 3rem;
+            color: #ff4444;
+            text-shadow: 0 0 10px darkred;
             margin: 0;
         }
-
         .final-score {
-            font-size: 2rem;
             background: #111;
             padding: 12px 24px;
             border-radius: 60px;
+            font-size: 1.8rem;
             border: 1px solid gold;
         }
-
         .restart-btn {
             background: #ffd966;
             border: none;
             padding: 12px 28px;
-            font-size: 1.4rem;
-            font-weight: bold;
             border-radius: 60px;
+            font-weight: bold;
+            font-size: 1.3rem;
             font-family: monospace;
             cursor: pointer;
-            box-shadow: 0 0 8px orange;
-            transition: 0.1s linear;
         }
-
-        .restart-btn:active {
-            transform: scale(0.96);
-        }
-
         .tg-link {
-            background: #1e2a3a;
+            background: #1f2a2f;
             color: #ffd966;
-            padding: 10px 20px;
+            padding: 8px 20px;
             border-radius: 60px;
             text-decoration: none;
             font-weight: bold;
-            margin-top: 8px;
             border: 1px solid #ffb347;
         }
-
         .hidden {
-            display: none;
+            visibility: visible;
         }
-
-        @media (max-width: 550px) {
-            .fall-item {
-                font-size: 48px;
-                width: 65px;
-                height: 65px;
-            }
-            .stats {
-                font-size: 1rem;
-                padding: 8px 12px;
-            }
+        @media (max-width: 600px) {
+            .stats { font-size: 0.9rem; padding: 4px 12px; }
+            .final-score { font-size: 1.3rem; }
         }
     </style>
 </head>
 <body>
-<div class="game-container" id="gameContainer">
+<div class="game-wrapper">
+    <canvas id="gameCanvas" width="600" height="800"></canvas>
+    <canvas id="effectCanvas" width="600" height="800"></canvas>
     <div class="stats">
-        <div class="score-box">⭐ SCORE: <span id="scoreValue">0</span></div>
-        <div class="timer-box">⏱️ <span id="timerValue">30</span>s</div>
-        <div class="best-box">🏆 BEST: <span id="bestValue">0</span></div>
+        <span>⭐ <span id="scoreDisplay">0</span></span>
+        <span>⏱️ <span id="timerDisplay">30</span>s</span>
+        <span>🏆 BEST <span id="bestDisplay">0</span></span>
     </div>
-
-    <div class="play-area" id="playArea"></div>
-
-    <div class="end-panel hidden" id="endPanel">
-        <h2>💥 ВЗОРВАНО!</h2>
-        <div class="final-score">ТВОЙ СЧЁТ: <span id="finalScoreSpan">0</span></div>
-        <div>⭐ звёзды +10 &nbsp;&nbsp; 💣 бомбы -15</div>
-        <button class="restart-btn" id="restartBtn">⚡ НОВАЯ ИГРА ⚡</button>
-        <a href="https://t.me/horikita666" target="_blank" class="tg-link">📨 КИНЬ РЕКОРД @HORIKITA666</a>
+    <div class="end-screen" id="endScreen">
+        <h2>💀 ГЕЙМОВЕР 💀</h2>
+        <div class="final-score">СЧЁТ: <span id="finalScore">0</span></div>
+        <button class="restart-btn" id="restartGameBtn">⚡ НОВАЯ ИГРА ⚡</button>
+        <a href="https://t.me/horikita666" target="_blank" class="tg-link">📨 @horikita666</a>
     </div>
 </div>
 
 <script>
-    (function() {
-        // -------------------- ИГРОВЫЕ ПЕРЕМЕННЫЕ --------------------
+    (function(){
+        // ----- РАЗМЕР CANVAS -----
+        const canvas = document.getElementById('gameCanvas');
+        const effectCanvas = document.getElementById('effectCanvas');
+        let ctx = canvas.getContext('2d');
+        let effectCtx = effectCanvas.getContext('2d');
+        let width, height;
+        
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            width = rect.width;
+            height = rect.height;
+            canvas.width = width;
+            canvas.height = height;
+            effectCanvas.width = width;
+            effectCanvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // ----- ИГРОВЫЕ ПАРАМЕТРЫ -----
         let score = 0;
-        let timeLeft = 30;          // секунд
+        let timeLeft = 30;
         let gameActive = true;
-        let animationFrameId = null;
+        let best = localStorage.getItem('starInkBest') ? parseInt(localStorage.getItem('starInkBest')) : 0;
+        document.getElementById('bestDisplay').innerText = best;
+        
+        let items = [];      // { x, y, type, radius, speed }
+        let animationId = null;
         let spawnInterval = null;
         let timerInterval = null;
         
-        let bestScore = localStorage.getItem("starStrikeBest") ? parseInt(localStorage.getItem("starStrikeBest")) : 0;
-        document.getElementById("bestValue").innerText = bestScore;
+        // ЭФФЕКТЫ ПРИ КАСАНИИ (чернила и волны)
+        let inkParticles = [];
         
-        const playArea = document.getElementById("playArea");
-        const scoreSpan = document.getElementById("scoreValue");
-        const timerSpan = document.getElementById("timerValue");
-        const endPanel = document.getElementById("endPanel");
-        const finalScoreSpan = document.getElementById("finalScoreSpan");
+        function addInkBurst(x, y, isBomb) {
+            const count = isBomb ? 22 : 10;
+            const color = isBomb ? `hsl(${Math.random() * 20}, 80%, 45%)` : `rgba(255, 215, 0, 0.9)`;
+            for(let i=0; i<count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 5;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+                inkParticles.push({
+                    x: x, y: y, vx: vx, vy: vy,
+                    life: 1.0, size: 4 + Math.random() * 8,
+                    color: isBomb ? `rgba(180, 20, 20, ${0.7+Math.random()*0.3})` : `rgba(255, 200, 50, ${0.8})`,
+                    isBombEffect: isBomb
+                });
+            }
+            // Добавляем радиальную рябь на effectCanvas
+            effectCtx.save();
+            effectCtx.shadowBlur = 0;
+            effectCtx.globalCompositeOperation = 'lighter';
+            for(let r = 10; r < 45; r+=12) {
+                effectCtx.beginPath();
+                effectCtx.arc(x, y, r, 0, Math.PI*2);
+                effectCtx.strokeStyle = isBomb ? '#ff4444' : '#ffcc44';
+                effectCtx.lineWidth = 3;
+                effectCtx.stroke();
+            }
+            effectCtx.restore();
+            setTimeout(() => {
+                effectCtx.clearRect(0,0,width,height);
+            }, 100);
+        }
         
-        // массив активных объектов: { element, type, y, speed }
-        let activeItems = [];
+        function drawInkParticles() {
+            for(let i=0; i<inkParticles.length; i++) {
+                const p = inkParticles[i];
+                effectCtx.beginPath();
+                effectCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2);
+                effectCtx.fillStyle = p.color;
+                effectCtx.fill();
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.025;
+                p.size *= 0.99;
+            }
+            inkParticles = inkParticles.filter(p => p.life > 0);
+            if(inkParticles.length) requestAnimationFrame(()=>drawInkParticles());
+        }
         
-        // ---------- ЗВУКИ через Web Audio (без файлов) ----------
+        // тряска экрана + глитч
+        function shakeScreen(intensity = 6) {
+            if(!gameActive) return;
+            const container = document.querySelector('.game-wrapper');
+            container.style.transform = `translate(${Math.random() * intensity - intensity/2}px, ${Math.random() * intensity/2}px)`;
+            setTimeout(() => { container.style.transform = ''; }, 80);
+        }
+        
+        // звуки
         let audioCtx = null;
-        function initAudio() {
-            if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        
-        function playStarSound() {
-            if (!audioCtx) return;
+        function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playStarBeep() {
+            if(!audioCtx) return;
             try {
-                const now = audioCtx.currentTime;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = "sine";
-                osc.frequency.value = 880;
-                gain.gain.value = 0.12;
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-                osc.stop(now + 0.3);
-            } catch(e) { console.log("audio err"); }
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.value = 880; gain.gain.value = 0.12;
+                osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.25);
+                osc.stop(audioCtx.currentTime+0.25);
+            } catch(e){}
         }
-        
-        function playBombSound() {
-            if (!audioCtx) return;
+        function playBombCrunch() {
+            if(!audioCtx) return;
             try {
-                const now = audioCtx.currentTime;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = "sawtooth";
-                osc.frequency.value = 140;
-                gain.gain.value = 0.1;
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
-                osc.stop(now + 0.35);
-            } catch(e) { console.log("audio err"); }
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth'; osc.frequency.value = 100; gain.gain.value = 0.2;
+                osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.3);
+                osc.stop(audioCtx.currentTime+0.3);
+            } catch(e){}
         }
         
-        // разблокировка звука (первый тап по полю)
-        function unlockAudioOnFirstTap() {
-            if (audioCtx && audioCtx.state === "suspended") {
-                audioCtx.resume();
-            }
-            playArea.removeEventListener("touchstart", unlockAudioOnFirstTap);
-            playArea.removeEventListener("mousedown", unlockAudioOnFirstTap);
-        }
-        playArea.addEventListener("touchstart", unlockAudioOnFirstTap);
-        playArea.addEventListener("mousedown", unlockAudioOnFirstTap);
+        function unlockAudio() { if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }
+        canvas.addEventListener('touchstart', unlockAudio);
+        canvas.addEventListener('mousedown', unlockAudio);
         
-        // ---------- ИГРОВАЯ ЛОГИКА ----------
-        function updateUI() {
-            scoreSpan.innerText = score;
-            timerSpan.innerText = timeLeft;
-        }
-        
-        function addScore(points) {
-            if (!gameActive) return;
-            score += points;
-            if (score < 0) score = 0;
-            updateUI();
-            if (score > bestScore) {
-                bestScore = score;
-                localStorage.setItem("starStrikeBest", bestScore);
-                document.getElementById("bestValue").innerText = bestScore;
-            }
-        }
-        
-        // создать падающий элемент
+        // спавн предметов
         function spawnItem() {
-            if (!gameActive) return;
-            const isStar = Math.random() < 0.6; // 60% звезды, 40% бомбы
-            const type = isStar ? "star" : "bomb";
-            const emoji = type === "star" ? "⭐" : "💣";
-            
-            const element = document.createElement("div");
-            element.className = "fall-item";
-            element.innerText = emoji;
-            if (type === "star") {
-                element.style.color = "#FFD966";
-                element.style.textShadow = "0 0 6px gold";
-            } else {
-                element.style.color = "#FF5A5F";
-                element.style.textShadow = "0 0 6px darkred";
+            if(!gameActive) return;
+            const isStar = Math.random() < 0.65;
+            const type = isStar ? 'star' : 'bomb';
+            const radius = 28;
+            const x = 30 + Math.random() * (width - 70);
+            const y = -radius;
+            items.push({ x, y, type, radius, speed: 1.6 + Math.random() * 2.2 });
+        }
+        
+        // отрисовка объектов
+        function drawGame() {
+            if(!ctx) return;
+            ctx.clearRect(0,0,width,height);
+            for(let it of items) {
+                ctx.font = `${it.radius+12}px "Segoe UI Emoji"`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = it.type === 'star' ? '#f0b27a' : '#c0392b';
+                ctx.fillText(it.type === 'star' ? '⭐' : '💣', it.x, it.y);
             }
+            ctx.shadowBlur = 0;
+        }
+        
+        function updatePositions() {
+            if(!gameActive) return;
+            for(let i=0; i<items.length; i++) {
+                items[i].y += items[i].speed;
+                if(items[i].y - items[i].radius > height) {
+                    items.splice(i,1); i--;
+                }
+            }
+        }
+        
+        function handleTap(clientX, clientY) {
+            if(!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = width / rect.width;
+            const scaleY = height / rect.height;
+            const tapX = (clientX - rect.left) * scaleX;
+            const tapY = (clientY - rect.top) * scaleY;
             
-            const areaRect = playArea.getBoundingClientRect();
-            const maxLeft = Math.max(10, areaRect.width - 70);
-            const leftPos = 10 + Math.random() * (maxLeft - 20);
-            element.style.left = leftPos + "px";
-            element.style.top = "0px";
-            
-            playArea.appendChild(element);
-            
-            const speed = 1.5 + Math.random() * 2.2;   // пикселей за кадр (60fps)
-            activeItems.push({
-                element: element,
-                type: type,
-                y: 0,
-                speed: speed,
-                left: leftPos
-            });
-            
-            // обработчик клика именно на этом элементе
-            const clickHandler = (e) => {
-                e.stopPropagation();
-                if (!gameActive) return;
-                if (!audioCtx) initAudio();
-                if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-                
-                const idx = activeItems.findIndex(i => i.element === element);
-                if (idx !== -1) {
-                    const item = activeItems[idx];
-                    if (item.type === "star") {
-                        addScore(10);
-                        playStarSound();
+            for(let i=0; i<items.length; i++) {
+                const it = items[i];
+                const dx = tapX - it.x;
+                const dy = tapY - it.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < it.radius + 12) {
+                    if(it.type === 'star') {
+                        score += 10;
+                        playStarBeep();
+                        addInkBurst(it.x, it.y, false);
+                        if(score > best) { best = score; localStorage.setItem('starInkBest', best); document.getElementById('bestDisplay').innerText = best; }
                     } else {
-                        addScore(-15);
-                        playBombSound();
+                        score = Math.max(0, score - 15);
+                        playBombCrunch();
+                        addInkBurst(it.x, it.y, true);
+                        shakeScreen(7);
                     }
-                    // удаляем элемент
-                    item.element.remove();
-                    activeItems.splice(idx, 1);
-                }
-                e.preventDefault();
-            };
-            element.addEventListener("click", clickHandler);
-            element.addEventListener("touchstart", clickHandler, { passive: false });
-        }
-        
-        // анимация падения (requestAnimationFrame)
-        let lastTimestamp = 0;
-        function animateFall(now) {
-            if (!gameActive) return;
-            const areaHeight = playArea.clientHeight;
-            for (let i = activeItems.length-1; i >= 0; i--) {
-                const item = activeItems[i];
-                if (!item.element) {
-                    activeItems.splice(i,1);
-                    continue;
-                }
-                item.y += item.speed;
-                if (item.y > areaHeight - 70) {
-                    // упал за пределы поля — просто удаляем без штрафа
-                    item.element.remove();
-                    activeItems.splice(i,1);
-                } else {
-                    item.element.style.top = item.y + "px";
+                    items.splice(i,1);
+                    updateScoreUI();
+                    break;
                 }
             }
-            animationFrameId = requestAnimationFrame(animateFall);
         }
         
-        // запуск спавна
-        function startSpawning() {
-            if (spawnInterval) clearInterval(spawnInterval);
-            spawnInterval = setInterval(() => {
-                if (gameActive) spawnItem();
-            }, 700);  // каждые 0.7 сек новый объект
+        function updateScoreUI() {
+            document.getElementById('scoreDisplay').innerText = score;
         }
         
-        // таймер обратного отсчёта
         function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
+            if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-                if (!gameActive) return;
-                if (timeLeft <= 1) {
-                    // конец игры
+                if(!gameActive) return;
+                if(timeLeft <= 1) {
                     clearInterval(timerInterval);
                     clearInterval(spawnInterval);
                     gameActive = false;
-                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                    animationFrameId = null;
-                    // удаляем все активные элементы
-                    for (let item of activeItems) {
-                        if (item.element) item.element.remove();
-                    }
-                    activeItems = [];
-                    endGame();
+                    document.getElementById('finalScore').innerText = score;
+                    document.getElementById('endScreen').classList.add('hidden');
+                    if(animationId) cancelAnimationFrame(animationId);
                 } else {
                     timeLeft--;
-                    timerSpan.innerText = timeLeft;
+                    document.getElementById('timerDisplay').innerText = timeLeft;
                 }
             }, 1000);
         }
         
-        function endGame() {
-            gameActive = false;
-            finalScoreSpan.innerText = score;
-            endPanel.classList.remove("hidden");
-            // показываем финальный счёт
+        function startSpawning() {
+            if(spawnInterval) clearInterval(spawnInterval);
+            spawnInterval = setInterval(() => { if(gameActive) spawnItem(); }, 680);
+        }
+        
+        function gameLoop() {
+            if(!gameActive) return;
+            updatePositions();
+            drawGame();
+            requestAnimationFrame(gameLoop);
         }
         
         function restartGame() {
-            // чистим всё
-            if (spawnInterval) clearInterval(spawnInterval);
-            if (timerInterval) clearInterval(timerInterval);
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            for (let item of activeItems) {
-                if (item.element) item.element.remove();
-            }
-            activeItems = [];
+            if(spawnInterval) clearInterval(spawnInterval);
+            if(timerInterval) clearInterval(timerInterval);
+            items = [];
             gameActive = true;
             score = 0;
             timeLeft = 30;
-            updateUI();
-            endPanel.classList.add("hidden");
-            
-            // перезапускаем механику
+            updateScoreUI();
+            document.getElementById('timerDisplay').innerText = timeLeft;
+            document.getElementById('endScreen').classList.remove('hidden');
+            effectCtx.clearRect(0,0,width,height);
+            inkParticles = [];
             startSpawning();
             startTimer();
-            animationFrameId = requestAnimationFrame(animateFall);
+            drawGame();
         }
         
-        // инициализация нового раунда (без глюков)
-        function initGame() {
-            restartGame(); // проще перезапустить
-        }
+        // события касания
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            for(let i=0; i<e.touches.length; i++) {
+                handleTap(e.touches[i].clientX, e.touches[i].clientY);
+            }
+        });
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            handleTap(e.clientX, e.clientY);
+        });
         
-        // разовая инициализация при запуске страницы
-        function setup() {
-            initAudio();
-            // фикс для анимации размера поля
-            window.addEventListener("resize", () => {});
-            initGame();
-        }
-        
-        // кнопка рестарта
-        document.getElementById("restartBtn").addEventListener("click", (e) => {
+        document.getElementById('restartGameBtn').addEventListener('click', () => {
             restartGame();
         });
         
-        setup();
+        function init() {
+            initAudio();
+            resizeCanvas();
+            restartGame();
+            animationId = requestAnimationFrame(gameLoop);
+            setInterval(() => { drawInkParticles(); }, 30);
+        }
+        
+        init();
     })();
 </script>
 </body>
-    </html>
+</html>
