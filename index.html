@@ -2,417 +2,285 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>STAR STRIKE — INK TOUCH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>HORIKITA AI — брутальный ассистент</title>
+    <!-- Подключаем предобученную модель (маленькая, ~300МБ, загружается один раз) -->
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0/dist/transformers.min.js"></script>
     <style>
         * {
-            user-select: none;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: text;
             -webkit-tap-highlight-color: transparent;
-            touch-action: none;
         }
         body {
-            margin: 0;
+            background: #0b0b10;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            padding: 1rem;
             min-height: 100vh;
-            background: #03030f;
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+        .ai-container {
+            max-width: 700px;
+            width: 100%;
+            background: #111116;
+            border: 2px solid #c0a050;
+            border-radius: 36px;
+            box-shadow: 0 0 20px rgba(192,160,80,0.3);
             overflow: hidden;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            font-family: 'Courier New', monospace;
-        }
-        .game-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 550px;
-            height: 95vh;
-            max-height: 800px;
-            border-radius: 48px;
-            border: 3px solid #ffd966;
-            box-shadow: 0 0 20px rgba(255, 200, 50, 0.5);
-            overflow: hidden;
-        }
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: block;
-            border-radius: 46px;
-        }
-        #gameCanvas {
-            background: radial-gradient(circle at 30% 20%, #0a0a1a, #000000);
-            z-index: 1;
-        }
-        #effectCanvas {
-            z-index: 2;
-            pointer-events: none;
-        }
-        .stats {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            display: flex;
-            justify-content: space-between;
-            background: #000000aa;
-            backdrop-filter: blur(10px);
-            padding: 8px 16px;
-            border-radius: 60px;
-            border: 1px solid #ffd966;
-            z-index: 10;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: #ffecb3;
-            font-family: monospace;
-            pointer-events: none;
-        }
-        .end-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000000dd;
-            backdrop-filter: blur(12px);
-            z-index: 20;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            border-radius: 48px;
+            height: 85vh;
+        }
+        .header {
+            background: #000000aa;
+            backdrop-filter: blur(8px);
+            padding: 1rem;
             text-align: center;
-            visibility: hidden;
+            border-bottom: 1px solid #c0a050;
         }
-        .end-screen h2 {
-            font-size: 3rem;
-            color: #ff4444;
-            text-shadow: 0 0 10px darkred;
-            margin: 0;
-        }
-        .final-score {
-            background: #111;
-            padding: 12px 24px;
-            border-radius: 60px;
+        .header h1 {
             font-size: 1.8rem;
-            border: 1px solid gold;
-        }
-        .restart-btn {
-            background: #ffd966;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 60px;
-            font-weight: bold;
-            font-size: 1.3rem;
-            font-family: monospace;
-            cursor: pointer;
-        }
-        .tg-link {
-            background: #1f2a2f;
+            letter-spacing: 2px;
             color: #ffd966;
-            padding: 8px 20px;
+            text-shadow: 0 0 4px #b87c00;
+        }
+        .header p {
+            font-size: 0.7rem;
+            color: #bcbcbc;
+        }
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .user {
+            background: #2a2a35;
+            align-self: flex-end;
+            border: 1px solid #6f5bef;
+            color: #f0f0f0;
+        }
+        .bot {
+            background: #0f0f17;
+            border: 1px solid #c0a050;
+            align-self: flex-start;
+            color: #ffecb3;
+        }
+        .loading {
+            background: #1f1f2a;
+            font-style: italic;
+            color: #aaa;
+        }
+        .input-area {
+            display: flex;
+            gap: 8px;
+            padding: 1rem;
+            background: #060608;
+            border-top: 1px solid #2a2a35;
+        }
+        input {
+            flex: 1;
+            background: #1e1e2a;
+            border: 1px solid #c0a050;
+            padding: 12px 16px;
             border-radius: 60px;
-            text-decoration: none;
+            color: white;
+            font-family: monospace;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        button {
+            background: #c0a050;
+            border: none;
+            padding: 0 20px;
+            border-radius: 60px;
             font-weight: bold;
-            border: 1px solid #ffb347;
+            font-family: monospace;
+            font-size: 1rem;
+            color: #0b0b10;
+            cursor: pointer;
+            transition: 0.1s linear;
         }
-        .hidden {
-            visibility: visible;
+        button:active {
+            transform: scale(0.96);
         }
-        @media (max-width: 600px) {
-            .stats { font-size: 0.9rem; padding: 4px 12px; }
-            .final-score { font-size: 1.3rem; }
+        .status {
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 6px;
+            color: #ffb347;
+            background: #00000088;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #c0a050; }
+        @media (max-width: 550px) {
+            .ai-container { height: 90vh; }
+            .message { max-width: 95%; font-size: 0.85rem; }
         }
     </style>
 </head>
 <body>
-<div class="game-wrapper">
-    <canvas id="gameCanvas" width="600" height="800"></canvas>
-    <canvas id="effectCanvas" width="600" height="800"></canvas>
-    <div class="stats">
-        <span>⭐ <span id="scoreDisplay">0</span></span>
-        <span>⏱️ <span id="timerDisplay">30</span>s</span>
-        <span>🏆 BEST <span id="bestDisplay">0</span></span>
+<div class="ai-container">
+    <div class="header">
+        <h1>⚡ HORIKITA AI ⚡</h1>
+        <p>брутальный интеллект — отвечает на всё | работает локально</p>
     </div>
-    <div class="end-screen" id="endScreen">
-        <h2>💀 ГЕЙМОВЕР 💀</h2>
-        <div class="final-score">СЧЁТ: <span id="finalScore">0</span></div>
-        <button class="restart-btn" id="restartGameBtn">⚡ НОВАЯ ИГРА ⚡</button>
-        <a href="https://t.me/horikita666" target="_blank" class="tg-link">📨 @horikita666</a>
+    <div class="chat-box" id="chatBox">
+        <div class="message bot">— Че надо? Я HORIKITA AI. Спрашивай про мемы, код, игру, дизайн или просто жизнь. Без цензуры.</div>
     </div>
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="спроси меня, бро...">
+        <button id="sendBtn">→</button>
+    </div>
+    <div class="status" id="statusText">⚡ модель загружается (первые секунды)</div>
 </div>
 
 <script>
     (function(){
-        // ----- РАЗМЕР CANVAS -----
-        const canvas = document.getElementById('gameCanvas');
-        const effectCanvas = document.getElementById('effectCanvas');
-        let ctx = canvas.getContext('2d');
-        let effectCtx = effectCanvas.getContext('2d');
-        let width, height;
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusSpan = document.getElementById('statusText');
         
-        function resizeCanvas() {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            width = rect.width;
-            height = rect.height;
-            canvas.width = width;
-            canvas.height = height;
-            effectCanvas.width = width;
-            effectCanvas.height = height;
+        let model = null;
+        let tokenizer = null;
+        let isReady = false;
+        
+        // быстрое логгирование в статус
+        function setStatus(msg, isError = false) {
+            statusSpan.innerHTML = msg;
+            if(isError) statusSpan.style.color = '#ff7777';
+            else statusSpan.style.color = '#ffb347';
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
         
-        // ----- ИГРОВЫЕ ПАРАМЕТРЫ -----
-        let score = 0;
-        let timeLeft = 30;
-        let gameActive = true;
-        let best = localStorage.getItem('starInkBest') ? parseInt(localStorage.getItem('starInkBest')) : 0;
-        document.getElementById('bestDisplay').innerText = best;
+        // добавляем сообщение в чат
+        function addMessage(text, isUser = false) {
+            const div = document.createElement('div');
+            div.className = `message ${isUser ? 'user' : 'bot'}`;
+            div.innerText = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
         
-        let items = [];      // { x, y, type, radius, speed }
-        let animationId = null;
-        let spawnInterval = null;
-        let timerInterval = null;
+        // временная "печатает"
+        let loadingDiv = null;
+        function showTyping() {
+            if(loadingDiv) loadingDiv.remove();
+            loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot loading';
+            loadingDiv.innerText = '— думаю...';
+            chatBox.appendChild(loadingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        function hideTyping() {
+            if(loadingDiv) { loadingDiv.remove(); loadingDiv = null; }
+        }
         
-        // ЭФФЕКТЫ ПРИ КАСАНИИ (чернила и волны)
-        let inkParticles = [];
-        
-        function addInkBurst(x, y, isBomb) {
-            const count = isBomb ? 22 : 10;
-            const color = isBomb ? `hsl(${Math.random() * 20}, 80%, 45%)` : `rgba(255, 215, 0, 0.9)`;
-            for(let i=0; i<count; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 1 + Math.random() * 5;
-                const vx = Math.cos(angle) * speed;
-                const vy = Math.sin(angle) * speed;
-                inkParticles.push({
-                    x: x, y: y, vx: vx, vy: vy,
-                    life: 1.0, size: 4 + Math.random() * 8,
-                    color: isBomb ? `rgba(180, 20, 20, ${0.7+Math.random()*0.3})` : `rgba(255, 200, 50, ${0.8})`,
-                    isBombEffect: isBomb
+        // ГЕНЕРАЦИЯ ОТВЕТА ЧЕРЕЗ transformers.js (нейросеть)
+        async function generateAnswer(prompt) {
+            if(!isReady || !model || !tokenizer) {
+                return "Модель ещё не загрузилась, чувак. Подожди пару секунд и напиши снова.";
+            }
+            try {
+                // используем маленькую, но шуструю модель для диалогов (microsoft/DialoGPT-small)
+                // можно задать параметры генерации
+                const inputs = await tokenizer(prompt, { return_tensors: 'pt', padding: true, truncation: true });
+                const outputs = await model.generate({
+                    input_ids: inputs.input_ids,
+                    attention_mask: inputs.attention_mask,
+                    max_new_tokens: 100,
+                    do_sample: true,
+                    temperature: 0.85,
+                    top_p: 0.9,
+                    repetition_penalty: 1.2
                 });
-            }
-            // Добавляем радиальную рябь на effectCanvas
-            effectCtx.save();
-            effectCtx.shadowBlur = 0;
-            effectCtx.globalCompositeOperation = 'lighter';
-            for(let r = 10; r < 45; r+=12) {
-                effectCtx.beginPath();
-                effectCtx.arc(x, y, r, 0, Math.PI*2);
-                effectCtx.strokeStyle = isBomb ? '#ff4444' : '#ffcc44';
-                effectCtx.lineWidth = 3;
-                effectCtx.stroke();
-            }
-            effectCtx.restore();
-            setTimeout(() => {
-                effectCtx.clearRect(0,0,width,height);
-            }, 100);
-        }
-        
-        function drawInkParticles() {
-            for(let i=0; i<inkParticles.length; i++) {
-                const p = inkParticles[i];
-                effectCtx.beginPath();
-                effectCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2);
-                effectCtx.fillStyle = p.color;
-                effectCtx.fill();
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= 0.025;
-                p.size *= 0.99;
-            }
-            inkParticles = inkParticles.filter(p => p.life > 0);
-            if(inkParticles.length) requestAnimationFrame(()=>drawInkParticles());
-        }
-        
-        // тряска экрана + глитч
-        function shakeScreen(intensity = 6) {
-            if(!gameActive) return;
-            const container = document.querySelector('.game-wrapper');
-            container.style.transform = `translate(${Math.random() * intensity - intensity/2}px, ${Math.random() * intensity/2}px)`;
-            setTimeout(() => { container.style.transform = ''; }, 80);
-        }
-        
-        // звуки
-        let audioCtx = null;
-        function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-        function playStarBeep() {
-            if(!audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.frequency.value = 880; gain.gain.value = 0.12;
-                osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.25);
-                osc.stop(audioCtx.currentTime+0.25);
-            } catch(e){}
-        }
-        function playBombCrunch() {
-            if(!audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sawtooth'; osc.frequency.value = 100; gain.gain.value = 0.2;
-                osc.start(); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.3);
-                osc.stop(audioCtx.currentTime+0.3);
-            } catch(e){}
-        }
-        
-        function unlockAudio() { if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }
-        canvas.addEventListener('touchstart', unlockAudio);
-        canvas.addEventListener('mousedown', unlockAudio);
-        
-        // спавн предметов
-        function spawnItem() {
-            if(!gameActive) return;
-            const isStar = Math.random() < 0.65;
-            const type = isStar ? 'star' : 'bomb';
-            const radius = 28;
-            const x = 30 + Math.random() * (width - 70);
-            const y = -radius;
-            items.push({ x, y, type, radius, speed: 1.6 + Math.random() * 2.2 });
-        }
-        
-        // отрисовка объектов
-        function drawGame() {
-            if(!ctx) return;
-            ctx.clearRect(0,0,width,height);
-            for(let it of items) {
-                ctx.font = `${it.radius+12}px "Segoe UI Emoji"`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = it.type === 'star' ? '#f0b27a' : '#c0392b';
-                ctx.fillText(it.type === 'star' ? '⭐' : '💣', it.x, it.y);
-            }
-            ctx.shadowBlur = 0;
-        }
-        
-        function updatePositions() {
-            if(!gameActive) return;
-            for(let i=0; i<items.length; i++) {
-                items[i].y += items[i].speed;
-                if(items[i].y - items[i].radius > height) {
-                    items.splice(i,1); i--;
+                const decoded = await tokenizer.decode(outputs[0], { skip_special_tokens: true });
+                let answer = decoded.trim();
+                if(!answer) answer = "Не выкупил вопрос. Перефразируй по-братски.";
+                // убираем повтор промпта (модель иногда возвращает prompt+answer)
+                if(answer.toLowerCase().startsWith(prompt.toLowerCase())) {
+                    answer = answer.slice(prompt.length).trim();
                 }
+                if(answer === "") answer = "Красава, вопрос годный. Но я пока не придумал ответ — попробуй ещё.";
+                return answer;
+            } catch(e) {
+                console.error(e);
+                return "Ошибка в нейросети (сбой генерации). Напиши проще или перезагрузи страницу.";
             }
         }
         
-        function handleTap(clientX, clientY) {
-            if(!gameActive) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = width / rect.width;
-            const scaleY = height / rect.height;
-            const tapX = (clientX - rect.left) * scaleX;
-            const tapY = (clientY - rect.top) * scaleY;
-            
-            for(let i=0; i<items.length; i++) {
-                const it = items[i];
-                const dx = tapX - it.x;
-                const dy = tapY - it.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                if(dist < it.radius + 12) {
-                    if(it.type === 'star') {
-                        score += 10;
-                        playStarBeep();
-                        addInkBurst(it.x, it.y, false);
-                        if(score > best) { best = score; localStorage.setItem('starInkBest', best); document.getElementById('bestDisplay').innerText = best; }
-                    } else {
-                        score = Math.max(0, score - 15);
-                        playBombCrunch();
-                        addInkBurst(it.x, it.y, true);
-                        shakeScreen(7);
+        // инициализация модели - диалоговая на 125M параметров (работает на телефоне ~200-300МБ ОЗУ)
+        async function initModel() {
+            setStatus("🔄 Загрузка брутального мозга... (первые 20-40 секунд)");
+            try {
+                const { pipeline, env } = transformers;
+                env.localModelPath = 'https://huggingface.co/microsoft/DialoGPT-small/resolve/main/';
+                // используем текстовую генерацию
+                const generator = await pipeline('text-generation', 'microsoft/DialoGPT-small', {
+                    quantized: true,
+                    progress_callback: (progress) => {
+                        if(progress.status === 'downloading') {
+                            setStatus(`📡 грузим модель: ${Math.round(progress.progress*100)}%`);
+                        }
                     }
-                    items.splice(i,1);
-                    updateScoreUI();
-                    break;
-                }
+                });
+                model = generator.model;
+                tokenizer = generator.tokenizer;
+                isReady = true;
+                setStatus("✅ HORIKITA AI готов. Спрашивай чёрт возьми!");
+                addMessage("— Я в деле. Задавай любой вопрос, бро.", false);
+            } catch(err) {
+                console.error(err);
+                setStatus("❌ Ошибка загрузки модели. Проверь интернет и перезагрузи страницу.", true);
+                addMessage("— Не смог загрузить нейросеть. Может, файрвол? Попробуй обновить страницу или попозже.", false);
             }
         }
         
-        function updateScoreUI() {
-            document.getElementById('scoreDisplay').innerText = score;
-        }
-        
-        function startTimer() {
-            if(timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if(!gameActive) return;
-                if(timeLeft <= 1) {
-                    clearInterval(timerInterval);
-                    clearInterval(spawnInterval);
-                    gameActive = false;
-                    document.getElementById('finalScore').innerText = score;
-                    document.getElementById('endScreen').classList.add('hidden');
-                    if(animationId) cancelAnimationFrame(animationId);
-                } else {
-                    timeLeft--;
-                    document.getElementById('timerDisplay').innerText = timeLeft;
-                }
-            }, 1000);
-        }
-        
-        function startSpawning() {
-            if(spawnInterval) clearInterval(spawnInterval);
-            spawnInterval = setInterval(() => { if(gameActive) spawnItem(); }, 680);
-        }
-        
-        function gameLoop() {
-            if(!gameActive) return;
-            updatePositions();
-            drawGame();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        function restartGame() {
-            if(spawnInterval) clearInterval(spawnInterval);
-            if(timerInterval) clearInterval(timerInterval);
-            items = [];
-            gameActive = true;
-            score = 0;
-            timeLeft = 30;
-            updateScoreUI();
-            document.getElementById('timerDisplay').innerText = timeLeft;
-            document.getElementById('endScreen').classList.remove('hidden');
-            effectCtx.clearRect(0,0,width,height);
-            inkParticles = [];
-            startSpawning();
-            startTimer();
-            drawGame();
-        }
-        
-        // события касания
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            for(let i=0; i<e.touches.length; i++) {
-                handleTap(e.touches[i].clientX, e.touches[i].clientY);
+        // обработка отправки сообщения
+        async function onSend() {
+            const question = userInput.value.trim();
+            if(!question) return;
+            if(!isReady) {
+                addMessage("Погоди, мозг ещё грузится. Через пару секунд отвечу.", false);
+                return;
             }
-        });
-        canvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            handleTap(e.clientX, e.clientY);
-        });
-        
-        document.getElementById('restartGameBtn').addEventListener('click', () => {
-            restartGame();
-        });
-        
-        function init() {
-            initAudio();
-            resizeCanvas();
-            restartGame();
-            animationId = requestAnimationFrame(gameLoop);
-            setInterval(() => { drawInkParticles(); }, 30);
+            addMessage(question, true);
+            userInput.value = '';
+            showTyping();
+            const reply = await generateAnswer(question);
+            hideTyping();
+            addMessage(reply, false);
         }
         
-        init();
+        sendBtn.addEventListener('click', onSend);
+        userInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') onSend(); });
+        
+        // напутствие и запуск
+        setTimeout(() => {
+            initModel();
+        }, 100);
+        
+        // fallback если модель не загрузилась через 20 секунд (показать помощь)
+        setTimeout(() => {
+            if(!isReady) {
+                addMessage("— Что-то долго, брат. Проверь соединение. Если интернет есть — обнови страницу.", false);
+            }
+        }, 25000);
     })();
 </script>
 </body>
